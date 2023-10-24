@@ -1,6 +1,8 @@
 ﻿using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
+using Serilog;
+using Serilog.Events;
 
 namespace DiscordBot;
 
@@ -9,21 +11,32 @@ public class LoggingService
     private readonly DiscordSocketClient _client;
     private readonly CommandService _commands;
 
-    private Task LogAsync(LogMessage Msg)
+    private async Task LogAsync(LogMessage Msg)
     {
+        var Severity = Msg.Severity switch
+        {
+            LogSeverity.Critical => LogEventLevel.Fatal,
+            LogSeverity.Error => LogEventLevel.Error,
+            LogSeverity.Warning => LogEventLevel.Warning,
+            LogSeverity.Info => LogEventLevel.Information,
+            LogSeverity.Verbose => LogEventLevel.Verbose,
+            LogSeverity.Debug => LogEventLevel.Debug,
+            _ => LogEventLevel.Information
+        };
+
         if (Msg.Exception is CommandException CmdException)
         {
-            Console.WriteLine($"[Command/{Msg.Severity}] {CmdException.Command.Aliases[0]}"
+            Log.Write(Severity, $"[Command/{Msg.Severity}] {CmdException.Command.Aliases[0]}"
                 + $" failed to execute in {CmdException.Context.Channel}.");
-            Console.WriteLine(CmdException);
+            Log.Write(Severity, $"{CmdException}");
         }
         else
-            Console.WriteLine($"[General/{Msg.Severity}] {Msg}");
+            Log.Write(Severity, Msg.Exception, $"[General/{Msg.Source}] {Msg.Message}");
 
-        return Task.CompletedTask;
+        await Task.CompletedTask;
     }
 
-    private Task ReadyAsync()
+    private async Task ReadyAsync()
     {
         LogAsync(new LogMessage(
             LogSeverity.Info,
@@ -31,7 +44,7 @@ public class LoggingService
             $"Logged in as {_client.CurrentUser}"
         )).GetAwaiter().GetResult();
 
-        return Task.CompletedTask;
+        await Task.CompletedTask;
     }
 
     public LoggingService(DiscordSocketClient Client, CommandService Cmds)

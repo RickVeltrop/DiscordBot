@@ -2,6 +2,7 @@
 using Discord.Commands;
 using Discord.WebSocket;
 using Microsoft.Extensions.DependencyInjection;
+using Serilog;
 
 namespace DiscordBot;
 
@@ -17,7 +18,8 @@ internal class Program
 
     private static IServiceProvider CreateProvider()
     {
-        var Config = new DiscordSocketConfig() {
+        var Config = new DiscordSocketConfig()
+        {
             LogLevel = LogSeverity.Info,
             GatewayIntents = GatewayIntents.None,
         };
@@ -35,6 +37,12 @@ internal class Program
 
     public async Task MainAsync(string[] args)
     {
+        Log.Logger = new LoggerConfiguration()
+            .MinimumLevel.Verbose()
+            .Enrich.FromLogContext()
+            .WriteTo.Console()
+            .CreateLogger();
+
         var _client = _serviceProvider.GetRequiredService<DiscordSocketClient>();
         var _logging = _serviceProvider.GetRequiredService<LoggingService>();
 

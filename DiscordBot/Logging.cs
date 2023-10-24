@@ -6,14 +6,14 @@ namespace DiscordBot;
 
 public class LoggingService
 {
-    private DiscordSocketClient _client;
-    private CommandService _commands;
+    private readonly DiscordSocketClient _client;
+    private readonly CommandService _commands;
 
     private Task LogAsync(LogMessage Msg)
     {
         if (Msg.Exception is CommandException CmdException)
         {
-            Console.WriteLine($"[Command/{Msg.Severity}] {CmdException.Command.Aliases.First()}"
+            Console.WriteLine($"[Command/{Msg.Severity}] {CmdException.Command.Aliases[0]}"
                 + $" failed to execute in {CmdException.Context.Channel}.");
             Console.WriteLine(CmdException);
         }

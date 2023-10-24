@@ -8,7 +8,7 @@ namespace DiscordBot;
 internal class Program
 {
     private readonly IServiceProvider _serviceProvider;
-    private string? _token = Environment.GetEnvironmentVariable("TOKEN");
+    private readonly string? _token = Environment.GetEnvironmentVariable("TOKEN");
 
     public Program()
     {

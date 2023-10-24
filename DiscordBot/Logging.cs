@@ -25,7 +25,11 @@ public class LoggingService
 
     private Task ReadyAsync()
     {
-        Console.WriteLine($"Logged in as {_client.CurrentUser}");
+        LogAsync(new LogMessage(
+            LogSeverity.Info,
+            "OnReady",
+            $"Logged in as {_client.CurrentUser}"
+        )).GetAwaiter().GetResult();
 
         return Task.CompletedTask;
     }

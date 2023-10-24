@@ -17,15 +17,17 @@ internal class Program
 
     private static IServiceProvider CreateProvider()
     {
-        var Config = new DiscordSocketConfig() { };
+        var Config = new DiscordSocketConfig() {
+            LogLevel = LogSeverity.Info,
+            GatewayIntents = GatewayIntents.None,
+        };
 
-        var Collection = new ServiceCollection()
+        return new ServiceCollection()
             .AddSingleton(Config)
             .AddSingleton<CommandService>()
             .AddSingleton<DiscordSocketClient>()
-            .AddSingleton<LoggingService>();
-
-        return Collection.BuildServiceProvider();
+            .AddSingleton<LoggingService>()
+            .BuildServiceProvider();
     }
 
     public static void Main(string[] args) =>

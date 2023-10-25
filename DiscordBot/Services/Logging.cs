@@ -4,12 +4,11 @@ using Discord.WebSocket;
 using Serilog;
 using Serilog.Events;
 
-namespace DiscordBot;
+namespace DiscordBot.Services;
 
 public class LoggingService
 {
     private readonly DiscordSocketClient _client;
-    private readonly CommandService _commands;
 
     private async Task LogAsync(LogMessage Msg)
     {
@@ -47,17 +46,15 @@ public class LoggingService
         await Task.CompletedTask;
     }
 
-    public LoggingService(DiscordSocketClient Client, CommandService Cmds)
+    public LoggingService(DiscordSocketClient Client)
     {
         _client = Client;
-        _commands = Cmds;
     }
 
     public Task InitializeAsync()
     {
         _client.Log += LogAsync;
         _client.Ready += ReadyAsync;
-        _commands.Log += LogAsync;
 
         return Task.CompletedTask;
     }

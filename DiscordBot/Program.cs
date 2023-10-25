@@ -2,6 +2,7 @@
 using Discord.Commands;
 using Discord.WebSocket;
 using Microsoft.Extensions.DependencyInjection;
+using DiscordBot.Services;
 using Serilog;
 
 namespace DiscordBot;
@@ -26,9 +27,9 @@ internal class Program
 
         return new ServiceCollection()
             .AddSingleton(Config)
-            .AddSingleton<CommandService>()
             .AddSingleton<DiscordSocketClient>()
             .AddSingleton<LoggingService>()
+            .AddSingleton<Services.Commands>()
             .BuildServiceProvider();
     }
 
@@ -45,11 +46,14 @@ internal class Program
 
         var _client = _serviceProvider.GetRequiredService<DiscordSocketClient>();
         var _logging = _serviceProvider.GetRequiredService<LoggingService>();
+        var _commands = _serviceProvider.GetRequiredService<Services.Commands>();
 
         await _logging.InitializeAsync();
 
         await _client.LoginAsync(TokenType.Bot, _token, true);
         await _client.StartAsync();
+
+        await _commands.InitializeAsync();
 
         await Task.Delay(-1);
     }

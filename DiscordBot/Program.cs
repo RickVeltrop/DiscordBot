@@ -1,35 +1,45 @@
-﻿using Discord;
-using Discord.Commands;
-using Discord.WebSocket;
-using Microsoft.Extensions.DependencyInjection;
+﻿using DSharpPlus;
 using DiscordBot.Services;
-using Serilog;
+using Microsoft.Extensions.DependencyInjection;
+using System.Reflection;
+using DSharpPlus.SlashCommands;
+using DSharpPlus.Entities;
+using Microsoft.Extensions.Logging;
+using NLog.Extensions.Logging;
+using NLog;
 
 namespace DiscordBot;
 
 internal class Program
 {
     private readonly IServiceProvider _serviceProvider;
-    private readonly string? _token = Environment.GetEnvironmentVariable("TOKEN");
+    private readonly Logger _logger;
+    private static readonly string? _token = Environment.GetEnvironmentVariable("TOKEN");
 
     public Program()
     {
         _serviceProvider = CreateProvider();
+        _logger = LogManager.GetCurrentClassLogger();
     }
 
     private static IServiceProvider CreateProvider()
     {
-        var Config = new DiscordSocketConfig()
+        var Config = new DiscordConfiguration()
         {
-            LogLevel = LogSeverity.Info,
-            GatewayIntents = GatewayIntents.None,
+            Token = _token,
+            TokenType = TokenType.Bot,
+            Intents = DiscordIntents.AllUnprivileged | DiscordIntents.MessageContents
         };
 
         return new ServiceCollection()
             .AddSingleton(Config)
-            .AddSingleton<DiscordSocketClient>()
-            .AddSingleton<LoggingService>()
-            .AddSingleton<Services.Commands>()
+            .AddSingleton<DiscordClient>()
+            .AddSingleton<CommandHandler>()
+            .AddLogging(loggingBuilder =>
+            {
+                loggingBuilder.ClearProviders();
+                loggingBuilder.AddNLog();
+            })
             .BuildServiceProvider();
     }
 
@@ -38,23 +48,19 @@ internal class Program
 
     public async Task MainAsync(string[] args)
     {
-        Log.Logger = new LoggerConfiguration()
-            .MinimumLevel.Verbose()
-            .Enrich.FromLogContext()
-            .WriteTo.Console()
-            .CreateLogger();
+        var _client = _serviceProvider.GetRequiredService<DiscordClient>();
+        var _commands = _serviceProvider.GetRequiredService<CommandHandler>();
 
-        var _client = _serviceProvider.GetRequiredService<DiscordSocketClient>();
-        var _logging = _serviceProvider.GetRequiredService<LoggingService>();
-        var _commands = _serviceProvider.GetRequiredService<Services.Commands>();
-
-        await _logging.InitializeAsync();
-
-        await _client.LoginAsync(TokenType.Bot, _token, true);
-        await _client.StartAsync();
+        _client.Ready += OnClientConnect;
 
         await _commands.InitializeAsync();
+        await _client.ConnectAsync();
 
         await Task.Delay(-1);
+    }
+
+    private async Task OnClientConnect(DiscordClient Client, DSharpPlus.EventArgs.ReadyEventArgs Args)
+    {
+        _logger.Info($"Logged in as {Client.CurrentUser.Username}#{Client.CurrentUser.Discriminator}");
     }
 }

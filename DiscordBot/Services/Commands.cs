@@ -1,9 +1,9 @@
-﻿using Discord;
-using Discord.WebSocket;
-using DiscordBot.Modals;
+﻿using DiscordBot.Commands;
 using DSharpPlus;
+using DSharpPlus.AsyncEvents;
+using DSharpPlus.Entities;
 using DSharpPlus.SlashCommands;
-using Microsoft.Extensions.Logging;
+using DSharpPlus.SlashCommands.EventArgs;
 using NLog;
 using System.Reflection;
 using System.Windows.Input;
@@ -12,25 +12,34 @@ namespace DiscordBot.Services;
 
 public class CommandHandler
 {
-    private readonly IServiceProvider _serviceProvider;
-    private readonly DiscordClient _client;
     private readonly Logger _logger;
     private readonly SlashCommandsExtension SlashCmdHandler;
 
     private Task RegisterCommandCategory(Type SlashCommandClass)
     {
-        SlashCmdHandler.RegisterCommands(SlashCommandClass, ulong.Parse(Environment.GetEnvironmentVariable("GUILD")!));
+        var GuildId = Environment.GetEnvironmentVariable("GUILD") ?? "764119388978413600";
+
+        ulong? Guild = SlashCommandClass.Name == "GuildCommands" ? ulong.Parse(GuildId) : null;
+        SlashCmdHandler.RegisterCommands(SlashCommandClass, Guild);
 
         return Task.CompletedTask;
     }
 
-    public CommandHandler(IServiceProvider ServiceProvider, DiscordClient Client)
+    private Task OnSlashCmdError(SlashCommandsExtension Sender, SlashCommandErrorEventArgs Args)
     {
-        _serviceProvider = ServiceProvider;
-        _client = Client;
-        _logger = LogManager.GetCurrentClassLogger();
+        _logger.Error($"Uncaught exception {Args.Exception.GetType().Name} in /{Args.Context.QualifiedName}: ```\n{Args.Exception.ToString()}\n```");
 
-        SlashCmdHandler = _client.UseSlashCommands();
+        Args.Context.EditResponseAsync(new DiscordWebhookBuilder().WithContent($"An uncaught exception occured while running this command."));
+
+        return Task.CompletedTask;
+    }
+
+    public CommandHandler(DiscordClient Client)
+    {
+        _logger = LogManager.GetCurrentClassLogger();
+        SlashCmdHandler = Client.UseSlashCommands();
+
+        SlashCmdHandler.SlashCommandErrored += OnSlashCmdError;
     }
 
     public async Task InitializeAsync()
@@ -60,7 +69,5 @@ public class CommandHandler
         }
 
         _logger.Info("[Commands/Initialization] Loaded commands");
-
-        await Task.CompletedTask;
     }
 }

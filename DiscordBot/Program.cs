@@ -1,11 +1,11 @@
-﻿using DSharpPlus;
-using DiscordBot.Services;
-using Microsoft.Extensions.DependencyInjection;
-using NLog.Extensions.Logging;
-using NLog;
+﻿using DiscordBot.Services;
+using DSharpPlus;
 using DSharpPlus.VoiceNext;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using NLog;
 using NLog.Config;
+using NLog.Extensions.Logging;
 using NLog.Targets;
 
 namespace DiscordBot;

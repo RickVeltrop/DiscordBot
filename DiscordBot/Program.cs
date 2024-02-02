@@ -18,9 +18,11 @@ public static class Program
 
     private static LoggingConfiguration LoggerConfig()
     {
+        var _config = _serviceProvider.GetRequiredService<IConfiguration>();
+
         var LogConsole = new ConsoleTarget("logconsole");
         var LogFile = new FileTarget("logfile") { FileName = "${LogDir}/${LogDay}.log" };
-        var LogDiscord = new DiscordTarget() { Layout = "${longdate} ${level:uppercase=true} ${message}" };
+        var LogDiscord = new DiscordTarget() { LogChannelID = _config.GetSection("LogChannel").Value };
 
         var config = new LoggingConfiguration();
         config.AddRule(LogLevel.Debug, LogLevel.Fatal, LogConsole);
@@ -42,11 +44,11 @@ public static class Program
 
         var Configuration = new ConfigurationBuilder()
             .SetBasePath(Directory.GetParent(AppContext.BaseDirectory)!.FullName)
-            .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
-            .Build();
+            .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
+            .Build().GetSection("AppSettings");
 
         return new ServiceCollection()
-            .AddSingleton<IConfiguration>(Configuration.GetSection("AppSettings"))
+            .AddSingleton<IConfiguration>(Configuration)
             .AddSingleton(BotConfig)
             .AddSingleton<DiscordClient>()
             .AddSingleton<CommandHandler>()

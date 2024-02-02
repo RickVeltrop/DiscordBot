@@ -8,6 +8,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Include="..\.editorconfig" Link=".editorconfig" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="DSharpPlus" Version="4.4.6" />
     <PackageReference Include="DSharpPlus.SlashCommands" Version="4.4.6" />
     <PackageReference Include="DSharpPlus.VoiceNext" Version="4.4.6" />
@@ -18,6 +22,10 @@
     <PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions" Version="8.0.0" />
     <PackageReference Include="NLog" Version="5.2.8" />
     <PackageReference Include="NLog.Extensions.Logging" Version="5.3.8" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Modals\" />
   </ItemGroup>
 
 </Project>

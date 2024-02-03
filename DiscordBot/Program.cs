@@ -21,7 +21,7 @@ public static class Program
         var _config = _serviceProvider.GetRequiredService<IConfiguration>();
 
         var LogConsole = new ConsoleTarget("logconsole");
-        var LogFile = new FileTarget("logfile") { FileName = "${LogDir}/${LogDay}.log" };
+        var LogFile = new FileTarget("logfile") { FileName = "${basedir}/logs/${shortdate}.log" };
         var LogDiscord = new DiscordTarget() { LogChannelID = _config.GetSection("LogChannel").Value };
 
         var config = new LoggingConfiguration();

@@ -20,8 +20,8 @@ public static class Program
     {
         var _config = _serviceProvider.GetRequiredService<IConfiguration>();
 
-        var LogConsole = new ConsoleTarget("logconsole");
-        var LogFile = new FileTarget("logfile") { FileName = "${basedir}/logs/${shortdate}.log" };
+        var LogConsole = new ConsoleTarget("logconsole") { Layout = _config.GetSection("ConsoleLoggerLayout").Value };
+        var LogFile = new FileTarget("logfile") { FileName = "${basedir}/logs/${shortdate}.log", Layout = _config.GetSection("FileLoggerLayout").Value };
         var LogDiscord = new DiscordTarget() { LogChannelID = _config.GetSection("LogChannel").Value };
 
         var config = new LoggingConfiguration();
